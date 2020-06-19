@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.giaragao.minhasfinancas.api.dto.AtualizaStatusDTO;
 import com.giaragao.minhasfinancas.api.dto.LancamentoDTO;
 import com.giaragao.minhasfinancas.exception.RegraNegocioException;
 import com.giaragao.minhasfinancas.model.entity.Lancamento;
@@ -60,8 +61,8 @@ public class LancamentoResource {
 		lancamentoFiltro.setAno(ano);
 		
 		Optional<Usuario> usuario = usuarioService.obterPorId(idUsuario);
-		if (usuario.isPresent()) {
-			return ResponseEntity.badRequest().body("");
+		if (!usuario.isPresent()) {
+			return ResponseEntity.badRequest().body("Não foi possível realizar a consulta. Usuário não encontrado!");
 		}
 		else {
 			lancamentoFiltro.setUsuario(usuario.get());
@@ -84,6 +85,26 @@ public class LancamentoResource {
 				return ResponseEntity.badRequest().body(e.getMessage());
 			}			
 		}).orElseGet( () -> new ResponseEntity("Lançamento não encontrado na base de dados.", HttpStatus.BAD_REQUEST));
+	}
+	
+	@PutMapping({"{id}/atualiza-status"})
+	public ResponseEntity atualizacarStatus(@PathVariable("id") Long id, @RequestBody AtualizaStatusDTO dto) {
+		return service.obterPorId(id).map( entity -> {
+			StatusLancamento statusSelecionado =StatusLancamento.valueOf(dto.getStatus());
+			
+			if(statusSelecionado == null) {
+				return ResponseEntity.badRequest().body("Não foi possível atualizar o status do lançamento, envie um status valido.");
+			}
+			
+			try {
+				entity.setStatus(statusSelecionado);
+				service.atualizar(entity);
+				return ResponseEntity.ok(entity);
+			}
+			catch (RegraNegocioException e) {
+				return ResponseEntity.badRequest().body(e.getMessage());
+			}			
+		}).orElseGet( () -> new ResponseEntity("Lançamento não encontrado na base de dados.", HttpStatus.BAD_REQUEST));	
 	}
 	
 	@DeleteMapping({"id"})
