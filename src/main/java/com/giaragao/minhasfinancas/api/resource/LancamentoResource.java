@@ -72,7 +72,7 @@ public class LancamentoResource {
 		return ResponseEntity.ok(lancamentos);
 	}	
 	
-	@PutMapping({"id"})
+	@PutMapping("{id}")
 	public ResponseEntity atualizar (@PathVariable("id") Long id, @RequestBody LancamentoDTO dto) {
 		return service.obterPorId(id).map( entity -> {
 			try {
@@ -107,7 +107,7 @@ public class LancamentoResource {
 		}).orElseGet( () -> new ResponseEntity("Lançamento não encontrado na base de dados.", HttpStatus.BAD_REQUEST));	
 	}
 	
-	@DeleteMapping({"id"})
+	@DeleteMapping("{id}")
 	public ResponseEntity deletar(@PathVariable("id") Long id) {
 		return service.obterPorId(id).map( entity -> {
 			service.deletar(entity);
